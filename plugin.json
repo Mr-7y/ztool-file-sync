@@ -1,0 +1,33 @@
+{
+  "name": "file-share",
+  "title": "FileShare 文件共享",
+  "description": "局域网文件共享服务",
+  "author": "y1y2",
+  "version": "1.0.0",
+  "main": "index.html",
+  "logo": "logo.png",
+  "preload": "preload/index.js",
+  "development": {
+    "main": "index.html"
+  },
+  "features": [
+    {
+      "code": "FileShare",
+      "explain": "局域网文件共享",
+      "icon": "logo.png",
+      "cmds": [
+        "FileShare",
+        "FS",
+        "share",
+        "共享",
+        "文件共享",
+        {
+          "type": "files",
+          "label": "文件分享",
+          "fileType": "file",
+          "minLength": 1
+        }
+      ]
+    }
+  ]
+}

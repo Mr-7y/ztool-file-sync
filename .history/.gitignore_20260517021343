@@ -1,0 +1,5 @@
+# Dependencies
+node_modules/
+preload/node_modules
+# Builds
+dist

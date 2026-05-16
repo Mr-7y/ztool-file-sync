@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist
+
+# User data
+userData/
+.user-data
+
+# Temporary files
+tmp/
+temp/

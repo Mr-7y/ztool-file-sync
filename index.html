@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FileShare 文件共享</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #1a1a2e; color: #e0e0e0; min-height: 100vh; padding: 32px 24px 60px;
+    }
+    .container { max-width: 640px; margin: 0 auto; }
+    .logo-wrap { text-align: center; margin-bottom: 24px; }
+    .logo-svg { width: 72px; height: 72px; }
+    h1 { font-size: 22px; text-align: center; margin-bottom: 4px; }
+    .subtitle { text-align: center; font-size: 13px; color: #6b7280; margin-bottom: 28px; }
+
+    .card { background: #16213e; border-radius: 12px; padding: 20px 24px; margin-bottom: 14px; border: 1px solid #1f2937; }
+    .card h2 { font-size: 13px; color: #e94560; margin-bottom: 12px; letter-spacing: 1px; }
+    .url-box { background: #0f3460; border: 1px solid #1f2937; border-radius: 8px; padding: 10px 14px; font-family: 'Consolas','Courier New',monospace; font-size: 14px; color: #4ade80; word-break: break-all; text-align: center; }
+    .status-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #6b7280; margin-top: 10px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #555; display: inline-block; }
+    .dot.on { background: #4ade80; box-shadow: 0 0 6px #4ade8080; }
+
+    .drop-zone { border: 2px dashed #1f2937; border-radius: 12px; padding: 32px 20px; text-align: center; cursor: pointer; transition: all .2s; background: #0f346020; margin-bottom: 14px; }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #e94560; background: #0f346040; }
+    .drop-zone .icon { font-size: 36px; margin-bottom: 8px; opacity: 0.6; }
+    .drop-zone .text { font-size: 14px; color: #6b7280; }
+    .drop-zone .hint { font-size: 12px; color: #4b5563; margin-top: 6px; }
+
+    .btn { padding: 9px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; position: relative; user-select: none; }
+    .btn:active { transform: scale(0.95); }
+    .btn.loading { opacity: 0.6; pointer-events: none; }
+    .btn.loading::after { content: ''; width: 12px; height: 12px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin .6s linear infinite; margin-left: 4px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-primary { background: #e94560; color: #fff; }
+    .btn-primary:hover { background: #d63851; }
+    .btn-secondary { background: #0f3460; color: #a0a0b8; border: 1px solid #1f2937; }
+    .btn-secondary:hover { background: #1a3a6e; color: #e0e0e0; }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+    .btn-danger { background: transparent; border: 1px solid #374151; color: #9ca3af; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all .15s; }
+    .btn-danger:hover { border-color: #e94560; color: #e94560; }
+    .btn-danger:active { transform: scale(0.92); }
+    .actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 8px 6px; font-size: 11px; color: #6b7280; border-bottom: 1px solid #1f2937; font-weight: 500; }
+    td { padding: 8px 6px; font-size: 13px; border-bottom: 1px solid #1f2937; }
+    .empty { text-align: center; color: #6b7280; padding: 24px 0; font-size: 13px; }
+    .file-name { display: flex; align-items: center; gap: 6px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-icon { font-size: 14px; flex-shrink: 0; }
+    .hint { font-size: 11px; color: #4b5563; margin-top: 10px; }
+    .tag { display: inline-block; padding: 3px 8px; background: #0f3460; border-radius: 5px; font-size: 11px; color: #60a5fa; margin: 1px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="logo-wrap">
+    <svg class="logo-svg" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#e94560"/><stop offset="100%" stop-color="#0f3460"/>
+      </linearGradient></defs>
+      <rect width="72" height="72" rx="16" fill="url(#lg)"/>
+      <path d="M36 20 L24 36 L30 36 L30 48 L42 48 L42 36 L48 36 Z" fill="#fff" opacity="0.9"/>
+      <path d="M36 52 L24 36 L30 36 L30 24 L42 24 L42 36 L48 36 Z" fill="#fff" opacity="0.5"/>
+    </svg>
+  </div>
+  <h1>FileShare</h1>
+  <p class="subtitle">局域网文件共享 · 端口 16888</p>
+
+  <!-- 服务器 -->
+  <div class="card">
+    <h2>📡 服务器</h2>
+    <div class="url-box" id="urlDisplay">启动服务后显示地址...</div>
+    <div class="status-row"><span class="dot" id="statusDot"></span><span id="statusText">未启动</span></div>
+    <div class="actions">
+      <button class="btn btn-primary" id="btnStart">▶ 启动</button>
+      <button class="btn btn-secondary" id="btnStop">⏹ 停止</button>
+    </div>
+  </div>
+
+  <!-- 拖拽区（点击也可选文件） -->
+  <div class="drop-zone" id="dropZone">
+    <div class="icon">📁</div>
+    <div class="text">将文件拖到这里，或点击选择文件</div>
+    <div class="hint">支持多文件拖拽 · 也可以拖入 ZTools 搜索框</div>
+  </div>
+
+  <!-- 文件列表 -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 style="margin:0">📂 共享文件</h2>
+      <button class="btn btn-danger btn-sm" id="btnClearAll" style="border-color:#e94560;color:#e94560">✕ 取消所有</button>
+    </div>
+    <table><thead><tr><th style="width:65%">文件</th><th style="width:80px">操作</th></tr></thead>
+      <tbody id="fileList"><tr><td colspan="2" class="empty">暂无共享文件</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- 使用说明 -->
+  <div class="card">
+    <h2>📖 使用说明</h2>
+    <div style="font-size:13px;color:#a0a0b8;line-height:1.8">
+      1. 点击 <span class="tag">启动</span> 开启共享<br>
+      2. 将文件拖入上方区域，或点击选择<br>
+      3. 也可直接将文件拖入 ZTools 搜索框<br>
+      4. 局域网访问上方地址即可下载<br>
+      <span style="color:#e94560">⚠ 页面内拖拽需在独立窗口中使用</span>
+    </div>
+  </div>
+</div>
+
+<script>
+var api = window.api;
+
+// === 工具函数 ===
+// 通过 preload 调用 ztools.showOpenDialog 选择文件
+function selectAndAddFiles() {
+  try {
+    console.log("selectAndAddFiles: calling api.selectFiles()");
+    var added = api.selectFiles();
+    console.log("selectAndAddFiles: added", added ? added.length : 0, "files");
+    if (added && added.length > 0) refreshFiles();
+  } catch(e) { console.error("selectAndAddFiles error:", e); }
+}
+
+// 通过 preload 调用 ztools.getPathForFile 处理拖拽文件
+function addDropFiles(fileList) {
+  if (!fileList || fileList.length === 0) return;
+  try {
+    var arr = [];
+    for (var i = 0; i < fileList.length; i++) arr.push(fileList[i]);
+    console.log("addDropFiles: processing", arr.length, "files");
+    var added = api.addDropFiles(arr);
+    console.log("addDropFiles: added", added ? added.length : 0, "files");
+    if (added && added.length > 0) refreshFiles();
+  } catch(e) { console.error("addDropFiles error:", e); }
+}
+
+function refreshStatus() {
+  try {
+    var st = api.getServerStatus(), url = api.getUrl(), ip = api.getIp();
+    var port = (api.getSetting && api.getSetting().port) || 16888;
+    document.getElementById('statusDot').className = 'dot' + (st === 1 ? ' on' : '');
+    document.getElementById('statusText').textContent = st === 1 ? '服务运行中' : '服务已停止';
+    document.getElementById('urlDisplay').textContent = st === 1 ? (url || 'http://' + (ip || '127.0.0.1') + ':' + port) : '启动服务后显示地址...';
+  } catch(e) { console.error(e); }
+}
+function refreshFiles() {
+  try {
+    var files = api.listFiles() || [];
+    console.log("refreshFiles: got " + files.length + " files", files);
+    var tb = document.getElementById('fileList');
+    if (files.length === 0) { tb.innerHTML = '<tr><td colspan="2" class="empty">暂无共享文件</td></tr>'; return; }
+    tb.innerHTML = files.map(function(f) {
+      var name = f.name || '未知';
+      return '<tr><td class="file-name"><span class="file-icon">📄</span><span title="' + name + '">' + name + '</span></td><td><button class="btn-danger" onclick="removeFile(\'' + (f.name||f.id).replace(/'/g,'') + '\')">取消分享</button></td></tr>';
+    }).join('');
+  } catch(e) { console.error("refreshFiles error:", e); }
+}
+window.removeFile = function(name) { try { api.removeFile(name); refreshFiles(); } catch(e) { console.error(e); } };
+
+// === 拖拽 + 点击选文件 ===
+var dropZone = document.getElementById('dropZone');
+
+// 拖拽事件 — 通过 ztools.getPathForFile 获取文件路径
+dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', function(e) { e.preventDefault(); dropZone.classList.remove('dragover'); });
+dropZone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  addDropFiles(e.dataTransfer.files);
+});
+
+// 点击 — 通过 ztools.showOpenDialog 选择文件
+dropZone.addEventListener('click', function() { selectAndAddFiles(); });
+
+// 全局 body 拖拽（兜底）
+document.body.addEventListener('dragover', function(e) { e.preventDefault(); });
+document.body.addEventListener('drop', function(e) {
+  e.preventDefault();
+  addDropFiles(e.dataTransfer.files);
+});
+
+// === 按钮 ===
+document.getElementById('btnClearAll').addEventListener('click', function() { try { api.clearAllFiles(); refreshFiles(); } catch(e) { console.error(e); } });
+document.getElementById('btnStart').addEventListener('click', function() {
+  this.classList.add('loading');
+  try { api.startServer(); } catch(e) { console.error(e); }
+  var self = this; setTimeout(function(){ refreshStatus(); self.classList.remove('loading'); }, 400);
+});
+document.getElementById('btnStop').addEventListener('click', function() {
+  this.classList.add('loading');
+  try { api.stopServer(); } catch(e) { console.error(e); }
+  var self = this, tries = 0;
+  (function check() { if (api.getServerStatus() === 0 || tries > 5) { refreshStatus(); self.classList.remove('loading'); return; } tries++; setTimeout(check, 200); })();
+});
+
+setInterval(function(){ refreshStatus(); refreshFiles(); }, 3000);
+refreshStatus(); refreshFiles();
+try { api.registryEventListener('file-changed', function(){ refreshFiles(); }); } catch(e) {}
+</script>
+</body>
+</html>

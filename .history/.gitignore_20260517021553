@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+preload/node_modules
+# Builds
+.dist
+preload.bundle.js
+# IDE
+.idea
+.vscode
+.workbuddy
