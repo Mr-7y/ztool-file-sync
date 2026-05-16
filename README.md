@@ -37,22 +37,6 @@ file-sync/
 
 ## 安装与使用
 
-1. 克隆项目到本地：
-   ```bash
-   git clone <repository-url>
-   cd file-sync
-   ```
-
-2. 安装依赖：
-   ```bash
-   npm install
-   ```
-
-3. 启动应用：
-   ```bash
-   npm start
-   ```
-
 详细使用说明请参阅 [USAGE.md](./USAGE.md)。
 
 ## 构建
